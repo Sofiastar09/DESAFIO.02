@@ -8,8 +8,8 @@ Bienvenidos al Sistema de Gestión de Combustible en Colombia!
 una red de estaciones de servicio de combustible utilizando POO.
 
 👥 Integrantes: 
-Sofía Casas y 
-Santiago Gallon 
+Sofía Casas 
+ 
 
 ## Contexto
 
