@@ -1,0 +1,512 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <ctime>  // Para obtener la fecha y hora
+#include <cstdlib> // Para rand() y srand()
+
+using namespace std;
+
+// Clase para almacenar el registro de cada venta.
+class RegistroVenta {
+public:
+    string fecha;
+    string hora;
+    double cantidad;
+    string categoriaCombustible;
+    string metodoPago;
+    string numeroDocumento;
+    double cantidadDinero;
+
+    RegistroVenta(string fecha, string hora, double cantidad, string categoriaCombustible,
+                  string metodoPago, string numeroDocumento, double cantidadDinero)
+        : fecha(fecha), hora(hora), cantidad(cantidad), categoriaCombustible(categoriaCombustible),
+        metodoPago(metodoPago), numeroDocumento(numeroDocumento), cantidadDinero(cantidadDinero) {}
+};
+
+// Clases principales.
+class Maquina {
+public:
+    string codigo;
+    string modelo;
+
+    Maquina(string codigo, string modelo)
+        : codigo(codigo), modelo(modelo) {}
+};
+
+class Surtidor : public Maquina {
+public:
+    double litrosVendidosRegular;
+    double litrosVendidosPremium;
+    double litrosVendidosEcoExtra;
+    vector<RegistroVenta> ventas;  // Vector para almacenar las ventas realizadas.
+    bool activo; // Estado del surtidor
+
+    Surtidor(string codigo, string modelo)
+        : Maquina(codigo, modelo), litrosVendidosRegular(0), litrosVendidosPremium(0), litrosVendidosEcoExtra(0), activo(true) {}
+
+    void realizarVenta(double litrosRegular, double litrosPremium, double litrosEcoExtra,
+                       const string& metodoPago, const string& numeroDocumento) {
+        if (!activo) {
+            cout << "Error: El surtidor esta desactivado.\n";
+            return;
+        }
+
+        litrosVendidosRegular += litrosRegular;
+        litrosVendidosPremium += litrosPremium;
+        litrosVendidosEcoExtra += litrosEcoExtra;
+
+        // Obtener la fecha y hora actual.
+        time_t now = time(0);
+        tm* ltm = localtime(&now);
+
+        // Formatear la fecha y la hora.
+        char fecha[20], hora[20];
+        sprintf(fecha, "%04d-%02d-%02d", 1900 + ltm->tm_year, 1 + ltm->tm_mon, ltm->tm_mday);
+        sprintf(hora, "%02d:%02d:%02d", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+
+        // Calcular la cantidad de dinero a pagar.
+        double cantidadDineroRegular = litrosRegular * 1.0; // Precio de Regular es 1.0
+        double cantidadDineroPremium = litrosPremium * 1.2; // Precio de Premium es 1.2
+        double cantidadDineroEcoExtra = litrosEcoExtra * 1.1; // Precio de EcoExtra es 1.1
+        double totalDinero = cantidadDineroRegular + cantidadDineroPremium + cantidadDineroEcoExtra;
+
+        // Registrar la venta
+        ventas.push_back(RegistroVenta(fecha, hora, litrosRegular + litrosPremium + litrosEcoExtra,
+                                       "Regular/Premium/EcoExtra", metodoPago, numeroDocumento, totalDinero));
+
+        // Mostrar la informacion de la venta.
+        cout << "Venta realizada en surtidor: " << codigo << endl;
+        cout << "Fecha: " << fecha << endl;
+        cout << "Hora: " << hora << endl;
+        cout << "Cantidad a pagar: $" << totalDinero << endl;
+        cout << "Método de pago: " << metodoPago << endl;
+        cout << "Numero de documento: " << numeroDocumento << endl;
+    }
+
+    void activar() {
+        activo = true;
+        cout << "Surtidor " << codigo << " activado." << endl;
+    }
+
+    void desactivar() {
+        activo = false;
+        cout << "Surtidor " << codigo << " desactivado." << endl;
+    }
+
+    void mostrarHistorialVentas() {
+        cout << "Historial de Ventas del Surtidor " << codigo << ":\n";
+        if (ventas.empty()) {
+            cout << "No hay ventas registradas.\n";
+            return;
+        }
+        for (const auto& venta : ventas) {
+            cout << "Fecha: " << venta.fecha << " Hora: " << venta.hora
+                 << " Combustible: " << venta.categoriaCombustible
+                 << " Cantidad: " << venta.cantidad << "L"
+                 << " Total Pagado: $" << venta.cantidadDinero
+                 << " Método de Pago: " << venta.metodoPago << endl;
+        }
+    }
+};
+
+class TanqueCentral {
+public:
+
+    double capacidadRegular = 100 + rand() % 101; // 100 a 200
+    double capacidadPremium = 100 + rand() % 101;
+    double capacidadEcoExtra = 100 + rand() % 101;
+
+    TanqueCentral(double reg, double prem, double eco)
+        : capacidadRegular(reg), capacidadPremium(prem), capacidadEcoExtra(eco) {}
+
+    bool verificarFuga(double totalVentasReg, double totalVentasPrem, double totalVentasEco) {
+        return (totalVentasReg > capacidadRegular) || (totalVentasPrem > capacidadPremium) || (totalVentasEco > capacidadEcoExtra);
+    }
+};
+
+class EstacionServicio {
+public:
+
+    void mostrarResumenVentas() {
+        double totalLitrosRegular = 0;
+        double totalLitrosPremium = 0;
+        double totalLitrosEcoExtra = 0;
+
+        for (const auto& surtidor : surtidores) {
+            totalLitrosRegular += surtidor->litrosVendidosRegular;
+            totalLitrosPremium += surtidor->litrosVendidosPremium;
+            totalLitrosEcoExtra += surtidor->litrosVendidosEcoExtra;
+        }
+
+        cout << "--- Resumen de Ventas ---" << endl;
+        cout << "Total litros vendidos de Regular: " << totalLitrosRegular << "L" << endl;
+        cout << "Total litros vendidos de Premium: " << totalLitrosPremium << "L" << endl;
+        cout << "Total litros vendidos de EcoExtra: " << totalLitrosEcoExtra << "L" << endl;
+    }
+private:
+    string nombre;
+    string codigoIdentificador;
+    string gerente;
+    double latitud;
+    double longitud;
+    TanqueCentral tanque;
+    vector<Surtidor*> surtidores;
+    double precioRegular;
+    double precioPremium;
+    double precioEcoExtra;
+
+public:
+    EstacionServicio(string nombre, string codigo, string gerente, double latitud, double longitud, TanqueCentral tanque)
+        : nombre(nombre), codigoIdentificador(codigo), gerente(gerente), latitud(latitud), longitud(longitud),
+        tanque(tanque), precioRegular(1.0), precioPremium(1.2), precioEcoExtra(1.1) {}
+
+    string getCodigo() const {
+        return codigoIdentificador;
+    }
+
+    void fijarPrecios(double nuevoPrecioRegular, double nuevoPrecioPremium, double nuevoPrecioEcoExtra) {
+        precioRegular = nuevoPrecioRegular;
+        precioPremium = nuevoPrecioPremium;
+        precioEcoExtra = nuevoPrecioEcoExtra;
+        cout << "Precios fijados: Regular: $" << precioRegular
+             << ", Premium: $" << precioPremium
+             << ", EcoExtra: $" << precioEcoExtra << endl;
+    }
+
+    void mostrarPrecios() const {
+        cout << "Precios actuales de combustible:\n";
+        cout << "Regular: $" << precioRegular << endl;
+        cout << "Premium: $" << precioPremium << endl;
+        cout << "EcoExtra: $" << precioEcoExtra << endl;
+    }
+
+    void agregarSurtidor(string codigo, string modelo) {
+        if (surtidores.size() >= 5) {
+            cout << "Error: No se pueden agregar mas surtidores (maximo 5)." << endl;
+            return;
+        }
+        for (auto& surtidor : surtidores) {
+            if (surtidor->codigo == codigo) {
+                cout << "Error: Ya existe un surtidor con ese codigo en esta estacion." << endl;
+                return;
+            }
+        }
+        surtidores.push_back(new Surtidor(codigo, modelo));
+        cout << "Surtidor agregado exitosamente." << endl;
+    }
+
+    void mostrarSurtidores() {
+        if (surtidores.empty()) {
+            cout << "No hay surtidores en esta estacion." << endl;
+            return;
+        }
+        for (size_t i = 0; i < surtidores.size(); i++) {
+            cout << i + 1 << ". Surtidor: " << surtidores[i]->codigo << ", Modelo: " << surtidores[i]->modelo
+                 << (surtidores[i]->activo ? " (Activo)" : " (Desactivado)") << endl;
+        }
+    }
+
+    void activarSurtidor(std::vector<Surtidor*>::size_type surtidorIndex) {
+        if (surtidorIndex < surtidores.size()) {
+            surtidores[surtidorIndex]->activar();
+        } else {
+            cout << "Indice de surtidor invalido.\n";
+        }
+    }
+
+    void desactivarSurtidor(std::vector<Surtidor*>::size_type surtidorIndex) {
+        if (surtidorIndex < surtidores.size()) {
+            surtidores[surtidorIndex]->desactivar();
+        } else {
+            cout << "Idice de surtidor invalido.\n";
+        }
+    }
+
+    void mostrarHistorialVentasSurtidor(std::vector<Surtidor*>::size_type surtidorIndex) {
+        if (surtidorIndex < surtidores.size()) {
+            // Logica para mostrar el historial de ventas del surtidor
+            surtidores[surtidorIndex]->mostrarHistorialVentas();
+        } else {
+            cout << "Indice de surtidor invalido.\n";
+        }
+    }
+
+    void simularVenta(std::vector<Surtidor*>::size_type surtidorIndex, double precio, double cantidad, double total, const std::string& cliente, const std::string& metodoPago) {
+        if (surtidorIndex < surtidores.size()) {
+            // Logica para simular la venta
+            surtidores[surtidorIndex]->realizarVenta(precio, cantidad, total, cliente, metodoPago);
+        } else {
+            cout << "ndice de surtidor invalido.\n";
+        }
+    }
+
+    bool verificarFugas() {
+
+        double totalVentasReg = 0, totalVentasPrem = 0, totalVentasEco = 0;
+        for (const auto& surtidor : surtidores) {
+            totalVentasReg += surtidor->litrosVendidosRegular;
+            totalVentasPrem += surtidor->litrosVendidosPremium;
+            totalVentasEco += surtidor->litrosVendidosEcoExtra;
+        }
+        return tanque.verificarFuga(totalVentasReg, totalVentasPrem, totalVentasEco);
+    }
+};
+
+// Clase para manejar la red nacional de estaciones.
+class RedNacional {
+private:
+    vector<EstacionServicio*> estaciones;
+
+public:
+    void agregarEstacionServicio(const string& nombre, const string& codigo, const string& gerente,
+                                 double latitud, double longitud, double capacidadRegular,
+                                 double capacidadPremium, double capacidadEcoExtra, const string& region) {
+        TanqueCentral tanque(capacidadRegular, capacidadPremium, capacidadEcoExtra);
+        estaciones.push_back(new EstacionServicio(nombre, codigo, gerente, latitud, longitud, tanque));
+        cout << "Estacion de servicio agregada en la region " << region << "." << endl;
+    }
+
+    EstacionServicio* getEstacion(int index, const string& region) {
+        if (index >= 0 && index < estaciones.size()) {
+            return estaciones[index];
+        }
+        return nullptr;
+    }
+
+    void mostrarEstaciones(const string& region) {
+        if (estaciones.empty()) {
+            cout << "No hay estaciones en la region " << region << "." << endl;
+            return;
+        }
+        for (size_t i = 0; i < estaciones.size(); i++) {
+            cout << i + 1 << ". Estacion: " << estaciones[i]->getCodigo() << endl;
+        }
+    }
+
+    void eliminarEstacionServicio(int index, const string& region) {
+        if (index >= 0 && index < estaciones.size()) {
+            delete estaciones[index];
+            estaciones.erase(estaciones.begin() + index);
+            cout << "Estacion eliminada exitosamente en la region " << region << "." << endl;
+        } else {
+            cout << "Indice de estacion invalido." << endl;
+        }
+    }
+
+    ~RedNacional() {
+        for (auto& estacion : estaciones) {
+            delete estacion;
+        }
+    }
+};
+
+
+// Funcion principal
+int main() {
+    srand(time(0)); // Inicializar la semilla para numeros aleatorios
+
+    RedNacional red;
+    string opcionPrincipal, regionSeleccionada;
+    int opcionRegion, opcionRed, opcionEstacion, opcionGestion, surtidorIndex;
+
+    do {
+        cout << "--- Menu Principal ---\n";
+        cout << "1. Gestionar Red Nacional\n";
+        cout << "2. Salir\n";
+        cout << "Seleccione una opcion: ";
+        cin >> opcionPrincipal;
+
+        switch (stoi(opcionPrincipal)) {
+        case 1:
+            cout << "--- Seleccionar Region ---\n";
+            cout << "1. Norte\n";
+            cout << "2. Centro\n";
+            cout << "3. Sur\n";
+            cout << "Seleccione una opcion: ";
+            cin >> opcionRegion;
+
+            switch (opcionRegion) {
+            case 1:
+                regionSeleccionada = "Norte";
+                break;
+            case 2:
+                regionSeleccionada = "Centro";
+                break;
+            case 3:
+                regionSeleccionada = "Sur";
+                break;
+            default:
+                cout << "Region no valida." << endl;
+                continue;
+            }
+
+            do {
+                cout << "--- Menu Red Nacional ---\n";
+                cout << "1. Agregar estacion de servicio\n";
+                cout << "2. Mostrar estaciones de servicio\n";
+                cout << "3. Eliminar estacion de servicio\n";
+                cout << "4. Gestionar estacion de servicio\n";
+                cout << "5. Salir al menu principal\n";
+                cout << "Seleccione una opcion: ";
+                cin >> opcionRed;
+
+                switch (opcionRed) {
+                case 1: {
+                    string nombre, codigo, gerente;
+                    double latitud, longitud;
+
+                    // Generar capacidades aleatorias entre 100 y 200 litros
+                    double capacidadRegular = 100 + rand() % 101; // 100 a 200
+                    double capacidadPremium = 100 + rand() % 101; // 100 a 200
+                    double capacidadEcoExtra = 100 + rand() % 101; // 100 a 200
+
+                    cout << "Ingrese el nombre de la estacion: ";
+                    cin >> nombre;
+                    cout << "Ingrese el codigo de la estacion: ";
+                    cin >> codigo;
+                    cout << "Ingrese el nombre del gerente: ";
+                    cin >> gerente;
+                    cout << "Ingrese la latitud: ";
+                    cin >> latitud;
+                    cout << "Ingrese la longitud: ";
+                    cin >> longitud;
+
+                    // Crear la estacion con capacidades aleatorias
+                    red.agregarEstacionServicio(nombre, codigo, gerente, latitud, longitud, capacidadRegular, capacidadPremium, capacidadEcoExtra, regionSeleccionada);
+                    break;
+                }
+                case 2:
+                    red.mostrarEstaciones(regionSeleccionada);
+                    break;
+                case 3:
+                    red.mostrarEstaciones(regionSeleccionada);
+                    cout << "Seleccione el indice de la estacion a eliminar: ";
+                    cin >> opcionEstacion;
+                    red.eliminarEstacionServicio(opcionEstacion - 1, regionSeleccionada);
+                    break;
+                case 4:
+                    red.mostrarEstaciones(regionSeleccionada);
+                    cout << "Seleccione el indice de la estacion para gestionar: ";
+                    cin >> opcionEstacion;
+                    if (EstacionServicio* estacion = red.getEstacion(opcionEstacion - 1, regionSeleccionada)) {
+                        do {
+                            cout << "--- Gestionar Estacion de Servicio ---\n";
+                            cout << "1. Agregar surtidor\n";
+                            cout << "2. Mostrar surtidores\n";
+                            cout << "3. Activar surtidor\n";
+                            cout << "4. Desactivar surtidor\n";
+                            cout << "5. Simular venta\n";
+                            cout << "6. Verificar fugas\n";
+                            cout << "7. Fijar precios de combustible\n";
+                            cout << "8. Mostrar precios de combustible\n";
+                            cout << "9. Mostrar historial de ventas de surtidor\n";
+                            cout << "10. Mostrar resumen de ventas\n";
+                            cout << "11. Volver\n";
+                            cout << "Seleccione una opcion: ";
+                            cin >> opcionGestion;
+
+                            switch (opcionGestion) {
+                            case 1: {
+                                string codigo, modelo;
+                                cout << "Ingrese el codigo del surtidor: ";
+                                cin >> codigo;
+                                cout << "Ingrese el modelo del surtidor: ";
+                                cin >> modelo;
+                                estacion->agregarSurtidor(codigo, modelo);
+                                break;
+                            }
+                            case 2:
+                                estacion->mostrarSurtidores();
+                                break;
+                            case 3:
+                                estacion->mostrarSurtidores();
+                                cout << "Seleccione el indice del surtidor a activar: ";
+                                cin >> surtidorIndex;
+                                estacion->activarSurtidor(surtidorIndex - 1);
+                                break;
+                            case 4:
+                                estacion->mostrarSurtidores();
+                                cout << "Seleccione el indice del surtidor a desactivar: ";
+                                cin >> surtidorIndex;
+                                estacion->desactivarSurtidor(surtidorIndex - 1);
+                                break;
+                            case 5: {
+                                double litrosReg, litrosPrem, litrosEco;
+                                string metodoPago, numeroDocumento;
+                                estacion->mostrarSurtidores();
+                                cout << "Seleccione el indice del surtidor: ";
+                                cin >> surtidorIndex;
+                                surtidorIndex--;
+                                cout << "Ingrese litros de Regular: ";
+                                cin >> litrosReg;
+                                cout << "Ingrese litros de Premium: ";
+                                cin >> litrosPrem;
+                                cout << "Ingrese litros de EcoExtra: ";
+                                cin >> litrosEco;
+                                cout << "Ingrese el método de pago: ";
+                                cin >> metodoPago;
+                                cout << "Ingrese el numero de documento: ";
+                                cin >> numeroDocumento;
+
+                                estacion->simularVenta(surtidorIndex, litrosReg, litrosPrem, litrosEco, metodoPago, numeroDocumento);
+                                break;
+                            }
+                            case 6:
+                                if (estacion->verificarFugas()) {
+                                    cout << "Alerta: Se ha detectado una fuga en la estacion.\n";
+                                } else {
+                                    cout << "No se detectaron fugas.\n";
+                                }
+                                break;
+                            case 7: {
+                                double precioRegular, precioPremium, precioEcoExtra;
+                                cout << "Ingrese el precio de Regular: ";
+                                cin >> precioRegular;
+                                cout << "Ingrese el precio de Premium: ";
+                                cin >> precioPremium;
+                                cout << "Ingrese el precio de EcoExtra: ";
+                                cin >> precioEcoExtra;
+                                estacion->fijarPrecios(precioRegular, precioPremium, precioEcoExtra);
+                                break;
+                            }
+                            case 8:
+                                estacion->mostrarPrecios();
+                                break;
+                            case 9: {
+                                cout << "Seleccione el indice del surtidor para ver el historial de ventas: ";
+                                cin >> surtidorIndex;
+                                estacion->mostrarHistorialVentasSurtidor(surtidorIndex - 1);
+                                break;
+                            }
+                            case 10:
+                                estacion->mostrarResumenVentas();
+                                break;
+                            case 11:
+                                break;
+                            default:
+                                cout << "Opcion no valida." << endl;
+                            }
+                        } while (opcionGestion != 11);
+                    } else {
+                        cout << "Estacion no encontrada.\n";
+                    }
+                    break;
+                case 5:
+                    break;
+                default:
+                    cout << "Opcion no valida." << endl;
+                }
+            } while (opcionRed != 5);
+            break;
+
+        case 2:
+            cout << "Saliendo del programa..." << endl;
+            break;
+
+        default:
+            cout << "Opcion no valida." << endl;
+        }
+    } while (opcionPrincipal != "2");
+
+    return 0;
+}
